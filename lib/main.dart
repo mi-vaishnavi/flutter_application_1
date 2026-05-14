@@ -10,11 +10,51 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Material Widget Demo',
+      title: 'Flutter Theming Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E88E5)),
+        // Material 3 color scheme from seed
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6750A4), // Purple seed
+          brightness: Brightness.light,
+        ),
         useMaterial3: true,
+
+        // Custom typography
+        textTheme: const TextTheme(
+          headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+          bodyLarge: TextStyle(fontSize: 16, height: 1.5),
+        ),
+
+        // Component themes
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          elevation: 4,
+        ),
+        cardTheme: CardTheme(
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+
+        // Custom properties
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+      ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6750A4),
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+        textTheme: const TextTheme(
+          headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+          bodyLarge: TextStyle(fontSize: 16, height: 1.5),
+        ),
       ),
       home: const HomeScreen(),
     );
@@ -33,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _savedName = 'No name entered yet';
   int _tapCount = 0;
   int _selectedIndex = 0;
+  bool _isDarkMode = false;
 
   void _saveName() {
     setState(() {
@@ -54,6 +95,34 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _toggleTheme() {
+    setState(() {
+      _isDarkMode = !_isDarkMode;
+    });
+  }
+
+  void _showBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Bottom Sheet', style: TextStyle(fontSize: 20)),
+            const SizedBox(height: 16),
+            Text('Tap count: $_tapCount'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _goToSecondScreen() {
     Navigator.push(
       context,
@@ -73,17 +142,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final pages = <Widget>[
       _buildHomePage(),
-      _buildInfoPage(),
+      _buildSettingsPage(),
     ];
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_selectedIndex == 0 ? 'Home' : 'Info'),
+        title: Text(_selectedIndex == 0 ? 'Home' : 'Settings'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () => _onItemTapped(1),
-            tooltip: 'View info',
+            icon: Icon(_isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            onPressed: _toggleTheme,
+            tooltip: 'Toggle theme',
           ),
         ],
       ),
@@ -98,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Align(
                 alignment: Alignment.bottomLeft,
                 child: Text(
-                  'Material Demo',
+                  'Theming Demo',
                   style: TextStyle(color: Colors.white, fontSize: 24),
                 ),
               ),
@@ -112,8 +181,8 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.sentiment_satisfied),
-              title: const Text('About'),
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
               onTap: () {
                 Navigator.pop(context);
                 _onItemTapped(1);
@@ -123,19 +192,29 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: IndexedStack(children: pages, index: _selectedIndex),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: _incrementTapCount,
-        tooltip: 'Increment counter',
-        child: const Icon(Icons.add),
+        label: const Text('Add'),
+        icon: const Icon(Icons.add),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.info), label: 'Info'),
+          NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
         ],
       ),
+      persistentFooterButtons: [
+        TextButton(
+          onPressed: _showBottomSheet,
+          child: const Text('Show Bottom Sheet'),
+        ),
+        OutlinedButton(
+          onPressed: _goToSecondScreen,
+          child: const Text('Next'),
+        ),
+      ],
     );
   }
 
@@ -146,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            'Use Material widgets to build a simple app.',
+            'Explore Flutter theming and Material 3.',
             style: TextStyle(fontSize: 18),
           ),
           const SizedBox(height: 16),
@@ -178,7 +257,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
           Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -205,19 +283,18 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
           Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Column(
               children: const [
                 ListTile(
-                  leading: Icon(Icons.check_circle_outline),
-                  title: Text('Material widget'),
-                  subtitle: Text('Scaffold, AppBar, Drawer, Buttons, Card, TextField'),
+                  leading: Icon(Icons.palette),
+                  title: Text('Material 3 Theming'),
+                  subtitle: Text('Custom color schemes, typography, and component themes'),
                 ),
                 Divider(height: 1),
                 ListTile(
-                  leading: Icon(Icons.lightbulb_outline),
-                  title: Text('Build tip'),
-                  subtitle: Text('Use padding and columns to organize content.'),
+                  leading: Icon(Icons.view_quilt),
+                  title: Text('Scaffold Layouts'),
+                  subtitle: Text('AppBar, Drawer, FAB, Bottom Nav, Footer Buttons'),
                 ),
               ],
             ),
@@ -227,30 +304,34 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildInfoPage() {
+  Widget _buildSettingsPage() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'App information',
+            'Settings',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           Card(
             child: Column(
-              children: const [
+              children: [
                 ListTile(
-                  leading: Icon(Icons.phone_android),
-                  title: Text('Platform friendly'),
-                  subtitle: Text('Material works on mobile, web, and desktop.'),
+                  leading: Icon(_isDarkMode ? Icons.dark_mode : Icons.light_mode),
+                  title: const Text('Theme Mode'),
+                  subtitle: Text(_isDarkMode ? 'Dark' : 'Light'),
+                  trailing: Switch(
+                    value: _isDarkMode,
+                    onChanged: (value) => _toggleTheme(),
+                  ),
                 ),
-                Divider(height: 1),
-                ListTile(
-                  leading: Icon(Icons.design_services),
-                  title: Text('Material design'),
-                  subtitle: Text('Use Material components for consistent UI.'),
+                const Divider(height: 1),
+                const ListTile(
+                  leading: Icon(Icons.color_lens),
+                  title: Text('Material 3 Colors'),
+                  subtitle: Text('Dynamic color scheme from purple seed'),
                 ),
               ],
             ),
